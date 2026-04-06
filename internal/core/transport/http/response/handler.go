@@ -1,0 +1,86 @@
+package core_http_response
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+
+	core_error "github.com/FeeRro/golang-todoApp/internal/core/errors"
+	core_logger "github.com/FeeRro/golang-todoApp/internal/core/logger"
+	"go.uber.org/zap"
+)
+
+type HTTPResponseHandler struct {
+	log *core_logger.Logger
+	rw  http.ResponseWriter
+}
+
+func NewHTTPResponseHandler(log *core_logger.Logger, rw http.ResponseWriter) *HTTPResponseHandler {
+	return &HTTPResponseHandler{
+		log: log,
+		rw:  rw,
+	}
+}
+
+func (h *HTTPResponseHandler) JsonResponse(responseBody any, statusCode int) {
+	h.rw.WriteHeader(statusCode)
+
+	if err := json.NewEncoder(h.rw).Encode(responseBody); err != nil {
+		h.log.Error("write HTTP response", zap.Error(err))
+	}
+}
+
+func (h *HTTPResponseHandler) NoContentResponse() {
+	h.rw.WriteHeader(http.StatusNoContent)
+}
+
+func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
+	var (
+		statusCode int
+		logFunc    func(string, ...zap.Field)
+	)
+
+	switch {
+	case errors.Is(err, core_error.ErrInvalidArgument):
+		statusCode = http.StatusBadRequest
+		logFunc = h.log.Warn
+	case errors.Is(err, core_error.ErrNotFound):
+		statusCode = http.StatusNotFound
+		logFunc = h.log.Debug
+	case errors.Is(err, core_error.ErrConflict):
+		statusCode = http.StatusConflict
+		logFunc = h.log.Warn
+	default:
+		statusCode = http.StatusInternalServerError
+		logFunc = h.log.Error
+
+	}
+
+	logFunc(msg, zap.Error(err))
+
+	h.errorResponse(statusCode, err, msg)
+}
+
+func (h *HTTPResponseHandler) PanicResponse(pan any, msg string) {
+	statusCode := http.StatusInternalServerError
+	err := fmt.Errorf("unexpected panic: %v", pan)
+
+	h.log.Error(msg, zap.Error(err))
+
+	h.errorResponse(statusCode, err, msg)
+}
+
+func (h *HTTPResponseHandler) errorResponse(
+	statusCode int,
+	err error,
+	msg string,
+) {
+
+	response := map[string]string{
+		"massage": msg,
+		"error":   err.Error(),
+	}
+
+	h.JsonResponse(response, statusCode)
+}
