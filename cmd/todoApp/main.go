@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/FeeRro/golang-todoApp/internal/core/logger"
-	core_postgres_pool "github.com/FeeRro/golang-todoApp/internal/core/repository/postgres/pool"
+	core_pgx_pool "github.com/FeeRro/golang-todoApp/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/FeeRro/golang-todoApp/internal/core/transport/http/middleware"
 	core_http_server "github.com/FeeRro/golang-todoApp/internal/core/transport/http/server"
 	users_postgres_repository "github.com/FeeRro/golang-todoApp/internal/features/users/repository/postgres"
@@ -29,9 +29,9 @@ func main() {
 	defer logger.Close()
 
 	logger.Debug("initialized postgres connection pool")
-	pool, err := core_postgres_pool.NewConnectionPool(
+	pool, err := core_pgx_pool.NewConnectionPool(
 		ctx,
-		core_postgres_pool.NewConfigMust(),
+		core_pgx_pool.NewConfigMust(),
 	)
 
 	if err != nil {
@@ -52,12 +52,24 @@ func main() {
 		logger,
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
+		core_http_middleware.Panic(),
 	)
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.APIVersionV1)
-	apiVersionRouter.RegisterRoute(usersTransportHttp.Routes()...)
-	httpServer.RegisterAPIRouters(apiVersionRouter)
+	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.APIVersionV1)
+	apiVersionRouterV1.RegisterRoute(usersTransportHttp.Routes()...)
+
+	// Пример работы мидлвари на apiVersionRouterV2
+
+	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(
+	// 	core_http_server.APIVersionV2,
+	// 	core_http_middleware.Dummy("тест мидлвари"),
+	// )
+	// apiVersionRouterV2.RegisterRoute(usersTransportHttp.Routes()...)
+
+	httpServer.RegisterAPIRouters(
+		apiVersionRouterV1,
+		// apiVersionRouterV2,
+	)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run Error", zap.Error(err))

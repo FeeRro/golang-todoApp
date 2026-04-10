@@ -15,8 +15,8 @@ func (r UserRepository) DeleteUser(
 	defer cancel()
 
 	query := `
-	DELETE from todolist.users
-	WHERE id=$1
+	DELETE FROM todolist.users
+	WHERE id=$1;
 	`
 
 	cmdTag, err := r.pool.Exec(ctx, query, id)

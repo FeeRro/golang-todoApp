@@ -24,6 +24,16 @@ func NewUser(id int, version int, fullName string, phoneNumber *string) User {
 	}
 }
 
+func NewUserPatch(
+	fullName Nullable[string],
+	phoneNumber Nullable[string],
+) UserPatch {
+	return UserPatch{
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+	}
+}
+
 func NewUserUninitialized(fullName string, phoneNumber *string) User {
 	return NewUser(
 		UninitializedID,
@@ -34,15 +44,15 @@ func NewUserUninitialized(fullName string, phoneNumber *string) User {
 }
 
 func (u User) Validate() error {
-	fullNameLenght := len([]rune(u.FullName))
-	if fullNameLenght < 3 || fullNameLenght > 100 {
-		return fmt.Errorf("invalid full name lenght %d: %w", fullNameLenght, core_error.ErrInvalidArgument)
+	fullNameLen := len([]rune(u.FullName))
+	if fullNameLen < 3 || fullNameLen > 100 {
+		return fmt.Errorf("invalid full name lenght %d: %w", fullNameLen, core_error.ErrInvalidArgument)
 	}
 
 	if u.PhoneNumber != nil {
-		phoneNumberlenght := len([]rune(*u.PhoneNumber))
-		if phoneNumberlenght < 10 || phoneNumberlenght > 15 {
-			return fmt.Errorf("invalid phone number lenght %d: %w", phoneNumberlenght, core_error.ErrInvalidArgument)
+		phoneNumberlen := len([]rune(*u.PhoneNumber))
+		if phoneNumberlen < 10 || phoneNumberlen > 15 {
+			return fmt.Errorf("invalid phone number lenght %d: %w", phoneNumberlen, core_error.ErrInvalidArgument)
 		}
 
 		re := regexp.MustCompile(`^\+?[0-9]+$`)

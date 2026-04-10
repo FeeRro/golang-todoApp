@@ -14,7 +14,7 @@ env-cleanup:
 	@read -p "Clear current DB session? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down todolist-postgres port-forwarder && \
-		rm -rf out/pgdata && \
+		rm -rf ${PROJECT_ROOT}/out/pgdata && \
 		echo "DB session cleared."; \
 	else \
 		echo "DB session preserved."; \
@@ -62,21 +62,7 @@ migrate-action:
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todolist-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
 
-
-reset-db:
-	@echo "⚠️  Resetting database..."
-	docker compose down -v
-	@if [ -d "out/pgdata" ]; then \
-		sudo rm -rf out/pgdata; \
-	fi
-	mkdir -p out/pgdata
-	docker compose up -d todolist-postgres
-	@echo "⏳ Waiting for Postgres..."
-	@sleep 3
-	$(MAKE) migrate-up
-	@echo "✅ Database reset complete"
-
 todo-run:
 	@export LOGGER_FOLDER=$(PROJECT_ROOT)/out/logs && \
 	export POSTGRES_HOST=localhost && \
-	go run cmd/todoApp/main.go
+	go run ${PROJECT_ROOT}/cmd/todoApp/main.go
