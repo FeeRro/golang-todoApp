@@ -79,5 +79,8 @@ todo-run:
 todo-deploy:
 	@docker compose up -d --build todoapp
 
+todo-undeploy:
+	@docker compose down todoapp
+
 ps:
 	@docker compose ps
