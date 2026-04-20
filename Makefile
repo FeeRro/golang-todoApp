@@ -75,3 +75,12 @@ todo-run:
 	@export LOGGER_FOLDER=$(PROJECT_ROOT)/out/logs && \
 	export POSTGRES_HOST=localhost && \
 	go run ${PROJECT_ROOT}/cmd/todoApp/main.go
+
+todo-deploy:
+	@docker compose up -d --build todoapp
+
+todo-undeploy:
+	@docker compose down todoapp
+
+ps:
+	@docker compose ps
