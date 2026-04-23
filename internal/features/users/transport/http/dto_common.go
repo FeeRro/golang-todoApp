@@ -5,10 +5,10 @@ import (
 )
 
 type UserDTOResponse struct {
-	ID          int     `json:"id"`
-	Version     int     `json:"version"`
-	FullName    string  `json:"full_name"`
-	PhoneNumber *string `json:"phone_number"`
+	ID          int     `json:"id"             example:"10"`
+	Version     int     `json:"version"        example:"5"`
+	FullName    string  `json:"full_name"      example:"Ivan Ivanov"`
+	PhoneNumber *string `json:"phone_number"   example:"+79998887766"`
 }
 
 func userDTOFromDomain(user domain.User) UserDTOResponse {

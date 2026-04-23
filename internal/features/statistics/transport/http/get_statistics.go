@@ -18,6 +18,18 @@ type GetStatisticsResponse struct {
 	TasksAverageCompletionTime *string  `json:"tasks_average_completion_time"`
 }
 
+// GetStatistics 	godoc
+// @Summary 		Статистика задач
+// @Description 	Получать статистику по задачам с опциональной фильтрацией по ID пользователя и/или периоду (userID, from, to)
+// @Tags 			statistics
+// @Produce 		json
+// @param       	user_id query int false 						"ID пользователя, статистику по задачам которого нужно получить"
+// @Param 			from query int false 							"С какой даты получать статистику по задачам (включительно)"
+// @Param 			to query int false 								"До какой даты получать статистику по задачам"
+// @Success 		200 {object} GetStatisticsResponse 			    "Статистика по задачам получена"
+// @Failure 		400 {object} core_http_response.ErrorResponse 	"Bad request"
+// @Failure 		500 {object} core_http_response.ErrorResponse 	"Internal server error"
+// @Router 			/statistics [get]
 func (h *StatisticsHTTPHandler) GetStatistics(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

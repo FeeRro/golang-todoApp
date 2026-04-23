@@ -13,10 +13,28 @@ import (
 )
 
 type PatchUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+	FullName    core_http_types.Nullable[string] `json:"full_name"    swaggertype:"string" example:"Ivan Ivanov"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" swaggertype:"string" example:"+79998887766"`
 }
 
+// PatchUser 		godoc
+// @Summary 	Изменение пользователя
+// @Description Изменение информации о уже существующем в системе пользователе по его ID
+// @Description ### Логика обновления полей (Three-state logec):
+// @Description 1. **Поле не передано**: 'phone_number' игнорируется, значение в БД не изменяется
+// @Description 2. **Поле явно передано**: '"phone_number": "+79998887766"' - устанавливает новый номер в БД
+// @Description 3. **Передан null**: '"phone_number": null' - удаляет номер телефона в БД (set to NULL)
+// @Description Ограничения: 'full_name' не может быть выставлен как null
+// @Tags 		users
+// @Accept 		json
+// @Produce 	json
+// @Param 		id path int true 								"ID пользователя"
+// @Param 		request body PatchUserRequest true 				"PatchUser тело запроса"
+// @Success 	200 {object} GetUserResponse 					"Успешное изменение пользоватнля"
+// @Failure 	400 {object} core_http_response.ErrorResponse 	"Bad request"
+// @Failure 	404 {object} core_http_response.ErrorResponse 	"User not found"
+// @Failure 	500 {object} core_http_response.ErrorResponse 	"Internal server error"
+// @Router 		/users/{id} [patch]
 func (r *PatchUserRequest) Validate() error {
 	if r.FullName.Set {
 		if r.FullName.Value == nil {
