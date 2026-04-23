@@ -82,5 +82,13 @@ todo-deploy:
 todo-undeploy:
 	@docker compose down todoapp
 
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/todoApp/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
+
 ps:
 	@docker compose ps
