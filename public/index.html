@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo MVP</title>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --panel: rgba(255, 255, 255, 0.78);
+        --panel-strong: rgba(255, 255, 255, 0.92);
+        --border: rgba(15, 23, 42, 0.08);
+        --border-soft: rgba(15, 23, 42, 0.06);
+        --text: #1d1d1f;
+        --muted: #6e6e73;
+        --primary: #111214;
+        --primary-hover: #1b1c1f;
+        --primary-text: #ffffff;
+        --danger: #d92c2c;
+        --danger-border: rgba(255, 59, 48, 0.14);
+        --success-bg: rgba(52, 199, 89, 0.1);
+        --success-text: #15803d;
+        --success-border: rgba(52, 199, 89, 0.16);
+        --warn-bg: rgba(255, 159, 10, 0.1);
+        --warn-text: #b45309;
+        --warn-border: rgba(255, 159, 10, 0.16);
+        --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+        --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+        --radius: 22px;
+        --card-radius: 16px;
+      }
+
+      body.theme-dark {
+        --bg: #0f1115;
+        --panel: rgba(28, 32, 40, 0.82);
+        --panel-strong: rgba(24, 28, 36, 0.94);
+        --border: rgba(255, 255, 255, 0.08);
+        --border-soft: rgba(255, 255, 255, 0.08);
+        --text: #f5f5f7;
+        --muted: #a1a1aa;
+        --primary: #f5f5f7;
+        --primary-hover: #ffffff;
+        --primary-text: #111214;
+        --danger: #ff7b72;
+        --danger-border: rgba(255, 123, 114, 0.18);
+        --success-bg: rgba(52, 199, 89, 0.16);
+        --success-text: #86efac;
+        --success-border: rgba(52, 199, 89, 0.2);
+        --warn-bg: rgba(255, 159, 10, 0.16);
+        --warn-text: #fdba74;
+        --warn-border: rgba(255, 159, 10, 0.2);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+        --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.22);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', Helvetica, Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top center, rgba(255,255,255,0.96) 0%, rgba(245,245,247,0.86) 38%, rgba(245,245,247,1) 100%),
+          linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 100%);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        transition: background 260ms ease, color 260ms ease;
+      }
+      body.theme-dark {
+        background:
+          radial-gradient(circle at top center, rgba(32,36,46,0.9) 0%, rgba(15,17,21,0.95) 38%, rgba(15,17,21,1) 100%),
+          linear-gradient(180deg, #12141a 0%, #0f1115 100%);
+      }
+
+      .container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 32px 24px 56px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1);
+      }
+      .topbar-actions { display: flex; gap: 10px; }
+      .icon-btn {
+        border: 1px solid var(--border-soft);
+        background: rgba(255,255,255,0.56);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 10px 14px;
+        cursor: pointer;
+        backdrop-filter: blur(16px);
+        transition: background 220ms ease, transform 220ms ease, border-color 220ms ease;
+      }
+      body.theme-dark .icon-btn { background: rgba(255,255,255,0.06); }
+      .icon-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.82); }
+      body.theme-dark .icon-btn:hover { background: rgba(255,255,255,0.1); }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1);
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255,255,255,0.6);
+        border-radius: 999px;
+        padding: 8px 12px;
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow-soft);
+      }
+      body.theme-dark .eyebrow { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); }
+      h1 {
+        margin: 14px 0 0;
+        font-size: 52px;
+        line-height: 1.02;
+        letter-spacing: -0.045em;
+        font-weight: 700;
+      }
+      .subtitle {
+        margin-top: 14px;
+        color: var(--muted);
+        max-width: 760px;
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .panel, .metric, .card, .drawer, .menu {
+        border: 1px solid rgba(255,255,255,0.55);
+        backdrop-filter: blur(24px) saturate(1.2);
+      }
+      body.theme-dark .panel,
+      body.theme-dark .metric,
+      body.theme-dark .card,
+      body.theme-dark .drawer,
+      body.theme-dark .menu { border-color: rgba(255,255,255,0.08); }
+
+      .panel {
+        position: relative;
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+        overflow: visible;
+        animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1);
+      }
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .panel-title {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+      }
+      .panel-meta {
+        font-size: 13px;
+        color: var(--muted);
+        background: rgba(255,255,255,0.82);
+        border-radius: 999px;
+        padding: 7px 11px;
+        border: 1px solid var(--border-soft);
+      }
+      body.theme-dark .panel-meta { background: rgba(255,255,255,0.06); }
+      .toolbar { min-width: 300px; background: var(--panel-strong); }
+      .tab-pane { display: none; animation: fadeTab 340ms cubic-bezier(.22,1,.36,1); }
+      .tab-pane.active { display: block; }
+      .single-column { display: grid; gap: 24px; }
+      .list { display: grid; gap: 14px; overflow: visible; }
+
+      .metric {
+        background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.68));
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: var(--shadow-soft);
+      }
+      body.theme-dark .metric { background: linear-gradient(180deg, rgba(33,37,46,0.88), rgba(24,28,36,0.72)); }
+      .metric-label { font-size: 14px; color: var(--muted); }
+      .metric-value { margin-top: 10px; font-size: 34px; font-weight: 700; letter-spacing: -0.05em; }
+      .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .charts-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; margin-top: 24px; }
+      .chart-card { padding: 20px; }
+      .chart-title { margin: 0 0 14px; font-size: 18px; font-weight: 650; }
+      .chart-wrap { position: relative; height: 280px; }
+      canvas { width: 100%; height: 100%; display: block; }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+      input, select, textarea, button { font: inherit; }
+      input, select, textarea {
+        width: 100%;
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        padding: 13px 15px;
+        outline: none;
+        background: rgba(255,255,255,0.62);
+        color: var(--text);
+      }
+      body.theme-dark input, body.theme-dark select, body.theme-dark textarea { background: rgba(255,255,255,0.06); }
+      input::placeholder, textarea::placeholder { color: #8d8d92; }
+      input:focus, select:focus, textarea:focus {
+        border-color: rgba(15, 23, 42, 0.14);
+        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.04);
+        background: rgba(255,255,255,0.9);
+      }
+      body.theme-dark input:focus, body.theme-dark select:focus, body.theme-dark textarea:focus {
+        border-color: rgba(255,255,255,0.16);
+        box-shadow: 0 0 0 4px rgba(255,255,255,0.04);
+        background: rgba(255,255,255,0.08);
+      }
+      textarea { min-height: 120px; resize: vertical; }
+      .form-grid { display: grid; gap: 14px; }
+
+      .btn {
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 12px 18px;
+        cursor: pointer;
+        background: var(--primary);
+        color: var(--primary-text);
+        font-weight: 600;
+      }
+      .btn:hover { background: var(--primary-hover); }
+      .btn-ghost {
+        background: rgba(255,255,255,0.54);
+        color: var(--muted);
+        border: 1px solid var(--border-soft);
+        padding: 10px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      body.theme-dark .btn-ghost { background: rgba(255,255,255,0.06); }
+
+      .alert {
+        margin-bottom: 24px;
+        border: 1px solid var(--danger-border);
+        background: rgba(255,255,255,0.72);
+        color: var(--danger);
+        border-radius: 16px;
+        padding: 14px 16px;
+        box-shadow: var(--shadow-soft);
+      }
+      body.theme-dark .alert { background: rgba(255,255,255,0.06); }
+
+      .card {
+        position: relative;
+        border-radius: var(--card-radius);
+        padding: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.76));
+        box-shadow: var(--shadow-soft);
+        overflow: visible;
+        z-index: 1;
+      }
+      body.theme-dark .card { background: linear-gradient(180deg, rgba(33,37,46,0.92), rgba(24,28,36,0.76)); }
+      .card.menu-open { z-index: 200; }
+      .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+      .card-title { font-size: 20px; font-weight: 650; letter-spacing: -0.03em; }
+      .muted { color: var(--muted); font-size: 14px; }
+      .description { margin-top: 12px; white-space: pre-wrap; color: var(--text); line-height: 1.55; }
+
+      .actions { position: relative; flex-shrink: 0; overflow: visible; }
+      .menu-btn {
+        border: 1px solid var(--border-soft);
+        background: rgba(255,255,255,0.74);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      body.theme-dark .menu-btn { background: rgba(255,255,255,0.08); }
+      .menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(255,255,255,0.98);
+        border-radius: 14px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+        display: none;
+        flex-direction: column;
+        min-width: 188px;
+        overflow: hidden;
+        z-index: 9999;
+      }
+      body.theme-dark .menu { background: rgba(24,28,36,0.98); }
+      .menu button {
+        border: none;
+        background: transparent;
+        color: var(--text);
+        padding: 12px 14px;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .menu button:hover { background: rgba(0,0,0,0.05); }
+      body.theme-dark .menu button:hover { background: rgba(255,255,255,0.06); }
+      .menu.open { display: flex; }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 5px 11px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+      .badge-success { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+      .badge-warn { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+      .inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .empty, .loading { color: var(--muted); }
+
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 10, 12, 0.18);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+        z-index: 40;
+      }
+      .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+      .drawer {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        bottom: 16px;
+        width: 300px;
+        background: var(--panel-strong);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+        transform: translateX(-108%);
+        transition: transform 260ms cubic-bezier(.22,1,.36,1);
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .drawer.open { transform: translateX(0); }
+      .drawer-header { display: flex; justify-content: space-between; align-items: center; }
+      .drawer-title { font-size: 22px; font-weight: 650; letter-spacing: -0.03em; }
+      .drawer-nav { display: grid; gap: 8px; }
+      .drawer-link {
+        width: 100%;
+        text-align: left;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text);
+        border-radius: 14px;
+        padding: 14px 16px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .drawer-link:hover { background: rgba(255,255,255,0.56); }
+      body.theme-dark .drawer-link:hover { background: rgba(255,255,255,0.06); }
+      .drawer-link.active { background: rgba(255,255,255,0.8); border-color: var(--border-soft); }
+      body.theme-dark .drawer-link.active { background: rgba(255,255,255,0.08); }
+      .drawer-section { border-top: 1px solid var(--border-soft); padding-top: 14px; }
+      .theme-switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.48);
+        border: 1px solid var(--border-soft);
+      }
+      body.theme-dark .theme-switch { background: rgba(255,255,255,0.04); }
+      .switch-group { display: inline-flex; gap: 8px; }
+      .switch-btn {
+        border: 1px solid var(--border-soft);
+        background: transparent;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .switch-btn.active { background: var(--primary); color: var(--primary-text); }
+
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes fadeTab { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+      @media (max-width: 1100px) {
+        .stats-grid, .charts-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 640px) {
+        .container { padding: 18px 16px 42px; }
+        h1 { font-size: 36px; }
+        .stats-grid, .charts-grid { grid-template-columns: 1fr; }
+        .row { flex-direction: column; }
+        .drawer { left: 10px; right: 10px; width: auto; top: 10px; bottom: 10px; }
+        .menu { left: 0; right: auto; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="drawer" class="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">Меню</div>
+        <button id="closeDrawerBtn" class="icon-btn" type="button">✕</button>
+      </div>
+
+      <div class="drawer-nav">
+        <button class="drawer-link active" data-tab="users" type="button">Пользователи</button>
+        <button class="drawer-link" data-tab="tasks" type="button">Задачи</button>
+        <button class="drawer-link" data-tab="statistics" type="button">Статистика</button>
+      </div>
+
+      <div class="drawer-section">
+        <div class="theme-switch">
+          <div>
+            <div style="font-weight:600;">Тема</div>
+            <div class="muted">Светлая / тёмная</div>
+          </div>
+          <div class="switch-group">
+            <button id="lightThemeBtn" class="switch-btn active" type="button">Light</button>
+            <button id="darkThemeBtn" class="switch-btn" type="button">Dark</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="container">
+      <div class="topbar">
+        <div class="topbar-actions">
+          <button id="openDrawerBtn" class="icon-btn" type="button">☰ Меню</button>
+        </div>
+        <div class="topbar-actions">
+          <button id="themeToggleBtn" class="icon-btn" type="button">◐ Тема</button>
+        </div>
+      </div>
+
+      <div class="header">
+        <div>
+          <div class="eyebrow">Apple style dashboard</div>
+          <h1>TodoApp</h1>
+          <div class="subtitle">Минималистичный интерфейс для управления пользователями, задачами и статистикой.</div>
+        </div>
+
+        <div class="panel toolbar">
+          <label for="userFilter">Фильтр по пользователю</label>
+          <select id="userFilter">
+            <option value="">Все пользователи</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="errorBox" class="alert" style="display: none"></div>
+
+      <div id="tab-users" class="tab-pane active">
+        <div class="single-column">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title" id="userFormTitle">Создать пользователя</h2>
+              <button id="cancelUserEdit" class="btn-ghost" type="button" style="display: none">Отмена</button>
+            </div>
+            <form id="userForm" class="form-grid">
+              <div>
+                <label for="userFullName">ФИО</label>
+                <input id="userFullName" name="full_name" required />
+              </div>
+              <div>
+                <label for="userPhone">Телефон</label>
+                <input id="userPhone" name="phone_number" />
+              </div>
+              <button class="btn" type="submit" id="userSubmitBtn">Сохранить</button>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Пользователи</h2>
+              <div class="panel-meta" id="usersCount">0</div>
+            </div>
+            <div id="usersList" class="list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-tasks" class="tab-pane">
+        <div class="single-column">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title" id="taskFormTitle">Создать задачу</h2>
+              <button id="cancelTaskEdit" class="btn-ghost" type="button" style="display: none">Отмена</button>
+            </div>
+            <form id="taskForm" class="form-grid">
+              <div id="taskAuthorField">
+                <label for="taskAuthor">Автор задачи</label>
+                <select id="taskAuthor" name="author_user_id" required>
+                  <option value="">Выбери автора задачи</option>
+                </select>
+              </div>
+              <div>
+                <label for="taskTitle">Название задачи</label>
+                <input id="taskTitle" name="title" required />
+              </div>
+              <div>
+                <label for="taskDescription">Описание</label>
+                <textarea id="taskDescription" name="description"></textarea>
+              </div>
+              <div id="taskCompletedField" style="display: none">
+                <label for="taskCompleted">Статус</label>
+                <select id="taskCompleted" name="is_completed">
+                  <option value="false">В работе</option>
+                  <option value="true">Выполнена</option>
+                </select>
+              </div>
+              <button class="btn" type="submit" id="taskSubmitBtn">Сохранить</button>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Задачи</h2>
+              <div class="panel-meta" id="tasksCount">0</div>
+            </div>
+            <div id="tasksList" class="list"></div>
+            <div id="tasksLoading" class="loading" style="display: none">Загрузка…</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-statistics" class="tab-pane">
+        <div class="stats-grid">
+          <div class="metric">
+            <div class="metric-label">Создано задач</div>
+            <div class="metric-value" id="metricCreated">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Завершено задач</div>
+            <div class="metric-value" id="metricCompleted">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Процент выполнения</div>
+            <div class="metric-value" id="metricRate">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Среднее время выполнения</div>
+            <div class="metric-value" id="metricAvgTime">—</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="panel chart-card">
+            <h3 class="chart-title">Выполнение задач</h3>
+            <div class="chart-wrap"><canvas id="completionChart" width="600" height="320"></canvas></div>
+          </div>
+          <div class="panel chart-card">
+            <h3 class="chart-title">Создано vs завершено</h3>
+            <div class="chart-wrap"><canvas id="summaryChart" width="420" height="320"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = 'http://localhost:5050/api/v1';
+
+      const state = {
+        theme: localStorage.getItem('todo-theme') || 'light',
+        isDrawerOpen: false,
+        users: [],
+        tasks: [],
+        stats: null,
+        selectedUserId: '',
+        editingUserId: null,
+        editingTaskId: null,
+        activeTab: 'users',
+      };
+
+      const el = {
+        drawer: document.getElementById('drawer'),
+        drawerBackdrop: document.getElementById('drawerBackdrop'),
+        openDrawerBtn: document.getElementById('openDrawerBtn'),
+        closeDrawerBtn: document.getElementById('closeDrawerBtn'),
+        drawerLinks: document.querySelectorAll('.drawer-link'),
+        themeToggleBtn: document.getElementById('themeToggleBtn'),
+        lightThemeBtn: document.getElementById('lightThemeBtn'),
+        darkThemeBtn: document.getElementById('darkThemeBtn'),
+        userFilter: document.getElementById('userFilter'),
+        errorBox: document.getElementById('errorBox'),
+        metricCreated: document.getElementById('metricCreated'),
+        metricCompleted: document.getElementById('metricCompleted'),
+        metricRate: document.getElementById('metricRate'),
+        metricAvgTime: document.getElementById('metricAvgTime'),
+        usersCount: document.getElementById('usersCount'),
+        usersList: document.getElementById('usersList'),
+        tasksCount: document.getElementById('tasksCount'),
+        tasksList: document.getElementById('tasksList'),
+        tasksLoading: document.getElementById('tasksLoading'),
+        userForm: document.getElementById('userForm'),
+        userFullName: document.getElementById('userFullName'),
+        userPhone: document.getElementById('userPhone'),
+        userFormTitle: document.getElementById('userFormTitle'),
+        userSubmitBtn: document.getElementById('userSubmitBtn'),
+        cancelUserEdit: document.getElementById('cancelUserEdit'),
+        taskForm: document.getElementById('taskForm'),
+        taskAuthorField: document.getElementById('taskAuthorField'),
+        taskAuthor: document.getElementById('taskAuthor'),
+        taskTitle: document.getElementById('taskTitle'),
+        taskDescription: document.getElementById('taskDescription'),
+        taskCompletedField: document.getElementById('taskCompletedField'),
+        taskCompleted: document.getElementById('taskCompleted'),
+        taskFormTitle: document.getElementById('taskFormTitle'),
+        taskSubmitBtn: document.getElementById('taskSubmitBtn'),
+        cancelTaskEdit: document.getElementById('cancelTaskEdit'),
+        completionChart: document.getElementById('completionChart'),
+        summaryChart: document.getElementById('summaryChart'),
+        tabPanes: {
+          users: document.getElementById('tab-users'),
+          tasks: document.getElementById('tab-tasks'),
+          statistics: document.getElementById('tab-statistics'),
+        },
+      };
+
+      function setError(message) {
+        if (!message) {
+          el.errorBox.style.display = 'none';
+          el.errorBox.textContent = '';
+          return;
+        }
+        el.errorBox.style.display = 'block';
+        el.errorBox.textContent = message;
+      }
+
+      function setActiveTab(tab) {
+        state.activeTab = tab;
+        el.drawerLinks.forEach((button) => button.classList.toggle('active', button.dataset.tab === tab));
+        Object.entries(el.tabPanes).forEach(([key, pane]) => pane.classList.toggle('active', key === tab));
+        if (tab === 'statistics') renderCharts();
+      }
+
+      function applyTheme(theme) {
+        state.theme = theme;
+        document.body.classList.toggle('theme-dark', theme === 'dark');
+        el.lightThemeBtn.classList.toggle('active', theme === 'light');
+        el.darkThemeBtn.classList.toggle('active', theme === 'dark');
+        localStorage.setItem('todo-theme', theme);
+        renderCharts();
+      }
+
+      function toggleTheme() { applyTheme(state.theme === 'light' ? 'dark' : 'light'); }
+      function setDrawerOpen(isOpen) {
+        state.isDrawerOpen = isOpen;
+        el.drawer.classList.toggle('open', isOpen);
+        el.drawerBackdrop.classList.toggle('open', isOpen);
+      }
+
+      async function request(path, options = {}) {
+        const response = await fetch(API_BASE_URL + path, {
+          headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+          ...options,
+        });
+        if (response.status === 204) return null;
+        const text = await response.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+        if (!response.ok) {
+          const message = (data && (data.message || data.error)) || 'Request failed with status ' + response.status;
+          throw new Error(message);
+        }
+        return data;
+      }
+
+      const api = {
+        getUsers() { return request('/users'); },
+        createUser(payload) { return request('/users', { method: 'POST', body: JSON.stringify(payload) }); },
+        updateUser(id, payload) { return request('/users/' + id, { method: 'PATCH', body: JSON.stringify(payload) }); },
+        deleteUser(id) { return request('/users/' + id, { method: 'DELETE' }); },
+        getTasks(userId) { return request(userId ? '/tasks?user_id=' + encodeURIComponent(userId) : '/tasks'); },
+        createTask(payload) { return request('/tasks', { method: 'POST', body: JSON.stringify(payload) }); },
+        updateTask(id, payload) { return request('/tasks/' + id, { method: 'PATCH', body: JSON.stringify(payload) }); },
+        deleteTask(id) { return request('/tasks/' + id, { method: 'DELETE' }); },
+        getStatistics(userId) { return request(userId ? '/statistics?user_id=' + encodeURIComponent(userId) : '/statistics'); },
+      };
+
+      function normalizeTask(task) {
+        return {
+          ...task,
+          isDone: Boolean(task && (task.is_complited ?? task.is_completed)),
+          completedAt: task ? task.complited_at ?? null : null,
+        };
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      function resetUserForm() {
+        state.editingUserId = null;
+        el.userForm.reset();
+        el.userFormTitle.textContent = 'Создать пользователя';
+        el.userSubmitBtn.textContent = 'Сохранить';
+        el.cancelUserEdit.style.display = 'none';
+      }
+
+      function resetTaskForm() {
+        state.editingTaskId = null;
+        el.taskForm.reset();
+        el.taskAuthor.value = state.selectedUserId || '';
+        el.taskCompleted.value = 'false';
+        el.taskFormTitle.textContent = 'Создать задачу';
+        el.taskSubmitBtn.textContent = 'Сохранить';
+        el.cancelTaskEdit.style.display = 'none';
+        el.taskAuthorField.style.display = 'block';
+        el.taskCompletedField.style.display = 'none';
+        el.taskAuthor.required = true;
+      }
+
+      function startEditUser(user) {
+        state.editingUserId = user.id;
+        el.userFullName.value = user.full_name || '';
+        el.userPhone.value = user.phone_number || '';
+        el.userFormTitle.textContent = 'Редактировать пользователя';
+        el.userSubmitBtn.textContent = 'Сохранить';
+        el.cancelUserEdit.style.display = 'inline-flex';
+      }
+
+      function startEditTask(task) {
+        state.editingTaskId = task.id;
+        el.taskTitle.value = task.title || '';
+        el.taskDescription.value = task.description || '';
+        el.taskAuthor.value = String(task.author_user_id || '');
+        el.taskCompleted.value = String(Boolean(task.isDone));
+        el.taskFormTitle.textContent = 'Редактировать задачу';
+        el.taskSubmitBtn.textContent = 'Сохранить';
+        el.cancelTaskEdit.style.display = 'inline-flex';
+        el.taskAuthorField.style.display = 'none';
+        el.taskCompletedField.style.display = 'block';
+        el.taskAuthor.required = false;
+      }
+
+      function closeAllMenus() {
+        document.querySelectorAll('.menu.open').forEach((menu) => menu.classList.remove('open'));
+        document.querySelectorAll('.card.menu-open').forEach((card) => card.classList.remove('menu-open'));
+      }
+
+      function openMenuForButton(menuBtn) {
+        const wrapper = menuBtn.closest('.actions');
+        const menu = wrapper.querySelector('.menu');
+        const card = menuBtn.closest('.card');
+        const isOpen = menu.classList.contains('open');
+        closeAllMenus();
+        if (!isOpen) {
+          menu.classList.add('open');
+          if (card) card.classList.add('menu-open');
+        }
+      }
+
+      function renderUsers() {
+        el.usersCount.textContent = String(state.users.length);
+        el.userFilter.innerHTML = ['<option value="">Все пользователи</option>']
+          .concat(state.users.map((user) => `<option value="${user.id}" ${String(state.selectedUserId) === String(user.id) ? 'selected' : ''}>#${user.id} — ${escapeHtml(user.full_name)}</option>`))
+          .join('');
+
+        const currentTaskAuthorValue = el.taskAuthor.value;
+        el.taskAuthor.innerHTML = ['<option value="">Выбери автора задачи</option>']
+          .concat(state.users.map((user) => `<option value="${user.id}" ${String(currentTaskAuthorValue) === String(user.id) ? 'selected' : ''}>#${user.id} — ${escapeHtml(user.full_name)}</option>`))
+          .join('');
+        if (!state.editingTaskId && state.selectedUserId) el.taskAuthor.value = state.selectedUserId;
+
+        if (!state.users.length) {
+          el.usersList.innerHTML = '<div class="empty">Пользователей пока нет.</div>';
+          return;
+        }
+
+        el.usersList.innerHTML = state.users.map((user) => `
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="card-title">${escapeHtml(user.full_name)}</div>
+                <div class="muted">ID: ${user.id}</div>
+                <div class="muted">${escapeHtml(user.phone_number || 'Телефон не указан')}</div>
+              </div>
+              <div class="actions">
+                <button class="menu-btn" type="button" aria-label="Действия">•••</button>
+                <div class="menu">
+                  <button type="button" data-action="edit-user" data-id="${user.id}">Редактировать</button>
+                  <button type="button" data-action="delete-user" data-id="${user.id}">Удалить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function renderTasks() {
+        el.tasksCount.textContent = String(state.tasks.length);
+        if (!state.tasks.length) {
+          el.tasksList.innerHTML = '<div class="empty">Задач пока нет.</div>';
+          return;
+        }
+
+        el.tasksList.innerHTML = state.tasks.map((task) => `
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="inline">
+                  <div class="card-title" style="${task.isDone ? 'text-decoration: line-through; opacity:.7;' : ''}">${escapeHtml(task.title)}</div>
+                  <span class="badge ${task.isDone ? 'badge-success' : 'badge-warn'}">${task.isDone ? 'Выполнена' : 'В работе'}</span>
+                </div>
+                <div class="muted">ID: ${task.id} · Автор: ${task.author_user_id}</div>
+                <div class="muted">Создана: ${escapeHtml(task.created_at || '—')}</div>
+                ${task.description ? `<div class="description">${escapeHtml(task.description)}</div>` : ''}
+              </div>
+              <div class="actions">
+                <button class="menu-btn" type="button" aria-label="Действия">•••</button>
+                <div class="menu">
+                  <button type="button" data-action="toggle-task" data-id="${task.id}">${task.isDone ? 'Открыть' : 'Завершить'}</button>
+                  <button type="button" data-action="edit-task" data-id="${task.id}">Редактировать</button>
+                  <button type="button" data-action="delete-task" data-id="${task.id}">Удалить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function calculateCompletionRate() {
+        const total = state.tasks.length;
+        if (!total) return 0;
+        const completed = state.tasks.filter((task) => task.isDone).length;
+        return Math.round((completed / total) * 100);
+      }
+
+      function renderStats() {
+        const completedCount = state.stats?.tasks_completed ?? state.tasks.filter((task) => task.isDone).length;
+        el.metricCreated.textContent = state.stats?.tasks_create ?? state.tasks.length ?? '—';
+        el.metricCompleted.textContent = completedCount;
+        el.metricRate.textContent = calculateCompletionRate() + '%';
+        el.metricAvgTime.textContent = state.stats?.tasks_average_completion_time ?? '—';
+      }
+
+      function drawDonutChart(canvas, completed, openCount) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        const total = completed + openCount;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.28;
+        const lineWidth = Math.min(w, h) * 0.12;
+        const fg1 = state.theme === 'dark' ? '#f5f5f7' : '#111214';
+        const fg2 = state.theme === 'dark' ? '#2f3542' : '#d9dde5';
+        const textSecondary = state.theme === 'dark' ? '#a1a1aa' : '#6e6e73';
+
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.strokeStyle = fg2;
+        ctx.lineWidth = lineWidth;
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (total > 0) {
+          const start = -Math.PI / 2;
+          const angle = (completed / total) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.strokeStyle = fg1;
+          ctx.lineWidth = lineWidth;
+          ctx.arc(cx, cy, radius, start, start + angle);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = fg1;
+        ctx.font = '600 34px -apple-system, BlinkMacSystemFont, SF Pro Display, Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText((total ? Math.round((completed / total) * 100) : 0) + '%', cx, cy + 8);
+
+        ctx.fillStyle = textSecondary;
+        ctx.font = '500 14px -apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica, Arial, sans-serif';
+        ctx.fillText('выполнено', cx, cy + 32);
+      }
+
+      function drawBarChart(canvas, created, completed) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        const fg = state.theme === 'dark' ? '#f5f5f7' : '#111214';
+        const fgMuted = state.theme === 'dark' ? '#7b8190' : '#cfd5df';
+        const textSecondary = state.theme === 'dark' ? '#a1a1aa' : '#6e6e73';
+        const maxVal = Math.max(created, completed, 1);
+        const left = 40;
+        const bottom = h - 42;
+        const chartH = h - 80;
+        const barW = 80;
+        const gap = 70;
+        const x1 = left + 50;
+        const x2 = x1 + barW + gap;
+        const y1 = bottom - (created / maxVal) * chartH;
+        const y2 = bottom - (completed / maxVal) * chartH;
+
+        ctx.strokeStyle = state.theme === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.10)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+          const y = bottom - (chartH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(left, y);
+          ctx.lineTo(w - 24, y);
+          ctx.stroke();
+        }
+
+        roundRect(ctx, x1, y1, barW, bottom - y1, 12, fgMuted);
+        roundRect(ctx, x2, y2, barW, bottom - y2, 12, fg);
+
+        ctx.fillStyle = textSecondary;
+        ctx.font = '500 13px -apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Создано', x1 + barW / 2, h - 16);
+        ctx.fillText('Завершено', x2 + barW / 2, h - 16);
+        ctx.fillStyle = fg;
+        ctx.font = '600 14px -apple-system, BlinkMacSystemFont, SF Pro Text, Helvetica, Arial, sans-serif';
+        ctx.fillText(String(created), x1 + barW / 2, y1 - 10);
+        ctx.fillText(String(completed), x2 + barW / 2, y2 - 10);
+      }
+
+      function roundRect(ctx, x, y, width, height, radius, fill) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height);
+        ctx.lineTo(x, y + height);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+
+      function renderCharts() {
+        const completed = state.tasks.filter((task) => task.isDone).length;
+        const openCount = Math.max(state.tasks.length - completed, 0);
+        const created = state.stats?.tasks_create ?? state.tasks.length;
+        drawDonutChart(el.completionChart, completed, openCount);
+        drawBarChart(el.summaryChart, created, completed);
+      }
+
+      function renderAll() {
+        renderUsers();
+        renderTasks();
+        renderStats();
+        renderCharts();
+      }
+
+      async function loadData() {
+        setError('');
+        el.tasksLoading.style.display = 'block';
+        try {
+          const [users, tasks, stats] = await Promise.all([
+            api.getUsers(),
+            api.getTasks(state.selectedUserId || undefined),
+            api.getStatistics(state.selectedUserId || undefined),
+          ]);
+          state.users = Array.isArray(users) ? users : [];
+          state.tasks = (Array.isArray(tasks) ? tasks : []).map(normalizeTask);
+          state.stats = stats || null;
+          renderAll();
+        } catch (error) {
+          setError(error.message || 'Не удалось загрузить данные');
+        } finally {
+          el.tasksLoading.style.display = 'none';
+        }
+      }
+
+      el.drawerLinks.forEach((button) => {
+        button.addEventListener('click', () => {
+          setActiveTab(button.dataset.tab);
+          setDrawerOpen(false);
+        });
+      });
+      el.openDrawerBtn.addEventListener('click', () => setDrawerOpen(true));
+      el.closeDrawerBtn.addEventListener('click', () => setDrawerOpen(false));
+      el.drawerBackdrop.addEventListener('click', () => setDrawerOpen(false));
+      el.themeToggleBtn.addEventListener('click', toggleTheme);
+      el.lightThemeBtn.addEventListener('click', () => applyTheme('light'));
+      el.darkThemeBtn.addEventListener('click', () => applyTheme('dark'));
+      window.addEventListener('resize', renderCharts);
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.actions')) closeAllMenus();
+      });
+
+      el.userFilter.addEventListener('change', async (event) => {
+        state.selectedUserId = event.target.value;
+        if (!state.editingTaskId) el.taskAuthor.value = state.selectedUserId || '';
+        await loadData();
+      });
+
+      el.userForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setError('');
+        try {
+          const payload = { full_name: el.userFullName.value.trim() };
+          if (el.userPhone.value.trim()) payload.phone_number = el.userPhone.value.trim();
+          if (state.editingUserId) await api.updateUser(state.editingUserId, payload);
+          else await api.createUser(payload);
+          resetUserForm();
+          await loadData();
+          setActiveTab('users');
+        } catch (error) {
+          setError(error.message || 'Не удалось сохранить пользователя');
+        }
+      });
+
+      el.taskForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setError('');
+        try {
+          if (state.editingTaskId) {
+            await api.updateTask(state.editingTaskId, {
+              title: el.taskTitle.value.trim(),
+              description: el.taskDescription.value.trim() || null,
+              is_completed: el.taskCompleted.value === 'true',
+            });
+          } else {
+            const payload = { title: el.taskTitle.value.trim(), author_user_id: Number(el.taskAuthor.value) };
+            if (el.taskDescription.value.trim()) payload.description = el.taskDescription.value.trim();
+            await api.createTask(payload);
+          }
+          resetTaskForm();
+          await loadData();
+          setActiveTab('tasks');
+        } catch (error) {
+          setError(error.message || 'Не удалось сохранить задачу');
+        }
+      });
+
+      el.cancelUserEdit.addEventListener('click', resetUserForm);
+      el.cancelTaskEdit.addEventListener('click', resetTaskForm);
+
+      el.usersList.addEventListener('click', async (event) => {
+        const menuBtn = event.target.closest('.menu-btn');
+        if (menuBtn) {
+          openMenuForButton(menuBtn);
+          return;
+        }
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const id = Number(button.dataset.id);
+        const action = button.dataset.action;
+        const user = state.users.find((item) => item.id === id);
+        if (!user) return;
+        closeAllMenus();
+        if (action === 'edit-user') {
+          startEditUser(user);
+          setActiveTab('users');
+          return;
+        }
+        if (action === 'delete-user') {
+          if (!window.confirm('Удалить пользователя?')) return;
+          try {
+            setError('');
+            await api.deleteUser(id);
+            if (String(state.selectedUserId) === String(id)) state.selectedUserId = '';
+            resetUserForm();
+            resetTaskForm();
+            await loadData();
+          } catch (error) {
+            setError(error.message || 'Не удалось удалить пользователя');
+          }
+        }
+      });
+
+      el.tasksList.addEventListener('click', async (event) => {
+        const menuBtn = event.target.closest('.menu-btn');
+        if (menuBtn) {
+          openMenuForButton(menuBtn);
+          return;
+        }
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const id = Number(button.dataset.id);
+        const action = button.dataset.action;
+        const task = state.tasks.find((item) => item.id === id);
+        if (!task) return;
+        closeAllMenus();
+        try {
+          setError('');
+          if (action === 'edit-task') {
+            startEditTask(task);
+            setActiveTab('tasks');
+            return;
+          }
+          if (action === 'delete-task') {
+            if (!window.confirm('Удалить задачу?')) return;
+            await api.deleteTask(id);
+            resetTaskForm();
+            await loadData();
+            return;
+          }
+          if (action === 'toggle-task') {
+            await api.updateTask(id, {
+              title: task.title,
+              description: task.description || null,
+              is_completed: !task.isDone,
+            });
+            await loadData();
+          }
+        } catch (error) {
+          setError(error.message || 'Не удалось обновить задачу');
+        }
+      });
+
+      resetUserForm();
+      resetTaskForm();
+      applyTheme(state.theme);
+      setDrawerOpen(false);
+      setActiveTab('users');
+      loadData();
+    </script>
+  </body>
+</html>
